@@ -12,22 +12,44 @@ import (
 
 type node map[string]interface{}
 
-func (n node) Values() url.Values {
+type PERIOD int
+
+const (
+        DOT PERIOD = iota
+        BRACKET
+)
+
+func (n node) Values(period PERIOD) url.Values {
 	vs := url.Values{}
-	n.merge("", &vs)
+	n.merge("", &vs,period)
 	return vs
 }
 
-func (n node) merge(p string, vs *url.Values) {
+func (n node) merge(p string, vs *url.Values,period PERIOD) {
 	for k, x := range n {
-		switch y := x.(type) {
-		case string:
-			vs.Add(p+escape(k), y)
-		case node:
-			y.merge(p+escape(k)+".", vs)
+		switch period {
+		case DOT:
+			switch y := x.(type) {
+			case string:
+				vs.Add(p+escape(k), y)
+			case node:
+				y.merge(p+escape(k)+".", vs,DOT)
+			default:
+				panic("value is neither string nor node")
+			}
+		case BRACKET:
+			switch y := x.(type) {
+			case string:
+				vs.Add(p+"["+escape(k)+"]", y)
+			case node:
+				y.merge(p+"["+escape(k)+"]", vs,BRACKET)
+			default:
+				panic("value is neither string nor node")
+			}
 		default:
-			panic("value is neither string nor node")
+			panic("invalid period")
 		}
+		
 	}
 }
 

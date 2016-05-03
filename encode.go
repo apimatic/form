@@ -27,13 +27,13 @@ type encoder struct {
 }
 
 // Encode encodes dst as form and writes it out using the encoder's Writer.
-func (e encoder) Encode(dst interface{}) error {
+func (e encoder) Encode(dst interface{},period PERIOD) error {
 	v := reflect.ValueOf(dst)
 	n, err := encodeToNode(v)
 	if err != nil {
 		return err
 	}
-	s := n.Values().Encode()
+	s := n.Values(period).Encode()
 	l, err := io.WriteString(e.w, s)
 	switch {
 	case err != nil:
@@ -45,23 +45,23 @@ func (e encoder) Encode(dst interface{}) error {
 }
 
 // EncodeToString encodes dst as a form and returns it as a string.
-func EncodeToString(dst interface{}) (string, error) {
+func EncodeToString(dst interface{}, period PERIOD) (string, error) {
 	v := reflect.ValueOf(dst)
 	n, err := encodeToNode(v)
 	if err != nil {
 		return "", err
 	}
-	return n.Values().Encode(), nil
+	return n.Values(period).Encode(), nil
 }
 
 // EncodeToValues encodes dst as a form and returns it as Values.
-func EncodeToValues(dst interface{}) (url.Values, error) {
+func EncodeToValues(dst interface{}, period PERIOD) (url.Values, error) {
 	v := reflect.ValueOf(dst)
 	n, err := encodeToNode(v)
 	if err != nil {
 		return nil, err
 	}
-	return n.Values(), nil
+	return n.Values(period), nil
 }
 
 func encodeToNode(v reflect.Value) (n node, err error) {
